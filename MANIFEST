@@ -1,4 +1,6 @@
 Build.PL
+ChangeLog
+ChangeLog.xml
 lib/IO/File/CompressOnClose.pm
 lib/IO/File/CompressOnClose/Gzip.pm
 Makefile.PL
