@@ -1,11 +1,36 @@
-use Test::More 'no_plan';
+#
+# $Id$
+#
 
-use IO::File::AutoCompress;
+use Test::More tests => 2;
+use Test::Exception;
 
-eval {
-    my $file = IO::File::AutoCompress->new('foo', 'w');
-    print $file "foo bar baz\n";
-    $file->close;
-};
+use strict;
+use warnings;
 
-ok( ! $@, 'open/print/close a file');
+use File::Path;
+
+BEGIN {
+    chdir 't' if -d 't';
+}
+
+mkdir 'compress' unless -d 'compress';
+chdir 'compress' or die;
+
+END {
+    chdir("..") or die;
+    rmtree 'compress' unless @ARGV;
+}
+
+use_ok('IO::File::CompressOnClose');
+
+my $io;
+lives_ok {
+    $io = IO::File::CompressOnClose->new('foo', 'w');
+    print $io "foo bar baz\n";
+    $io->close;
+} 'open/print/close a file';
+
+#
+# EOF
+
