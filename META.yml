@@ -20,4 +20,6 @@ provides:
     version: 0.10
   IO::File::CompressOnClose::Gzip:
     file: lib/IO/File/CompressOnClose/Gzip.pm
+  IO::File::CompressOnClose::Zip:
+    file: lib/IO/File/CompressOnClose/Zip.pm
 generated_by: Module::Build version 0.21
