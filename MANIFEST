@@ -17,3 +17,5 @@ t/06_gzip.t
 t/07_zip.t
 t/08_coderef.t
 t/09_delete_after_compress.t
+t/10_subclass.t
+t/11_esoteric.t

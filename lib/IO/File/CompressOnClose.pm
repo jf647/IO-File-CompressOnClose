@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: CompressOnClose.pm,v 1.2 2003/12/28 00:15:15 james Exp $
 #
 
 =head1 NAME
@@ -9,19 +9,19 @@ IO::File::CompressOnClose - compress a file when done writing to it
 =head1 SYNOPSIS
 
  use IO::File::CompressOnClose;
- my $file = IO::File::CompressOnClose->new('>foo');
- print $file "foo bar baz\n";
- $file->close;  # file will be compressed to foo.gz on unix or
-                # foo.zip on Windows
+ my $io = IO::File::CompressOnClose->new('>foo');
+ print $io "foo bar baz\n";
+ $io->close;  # file will be compressed to foo.gz on unix or
+              # foo.zip on Windows
 
 To change compression schema to a class (which is expected to have
 a C<< ->compress() >> class method):
 
- IO::File::CompressOnClose->compressor('Foo::Bar');
+ $io->compressor('Foo::Bar');
 
 To change compression scheme to an arbitrary coderef:
 
- IO::File::CompressOnClose->compressor(\&coderef);
+ $io->compressor(\&coderef);
 
 =cut
 
@@ -33,7 +33,7 @@ use warnings;
 use vars        qw|@ISA $VERSION|;
 
 @ISA          = qw|IO::File|;
-$VERSION      = '0.10';
+$VERSION      = '0.11';
 
 use Carp        qw|croak|;
 use IO::File;
@@ -97,8 +97,17 @@ sub open
     }
     $self->filename( $file );
     
-    # dispatch to our parent class to do the real open
-    $self->SUPER::open(@_);
+    # get our parent class to do the real open
+    my $rc = $self->SUPER::open(@_);
+    
+    # if the file doesn't exist then we probably were given
+    # something esoteric like >&1
+    unless( -f $file ) {
+        $self->compress_on_close(0);
+        croak("'$file' does not exist after open");
+    }
+    
+    return $rc;
     
 }
 
@@ -138,10 +147,16 @@ sub close
             && $self->compressed(1);
     }
     else {
-        # load the compression class
-        eval "require $compressor";
-        if( $@ ) {
-            croak("could not load compression class $compressor: $@");
+        # load the compression class if it isn't already
+        unless( UNIVERSAL::isa($compressor, 'UNIVERSAL') ) {
+            eval "require $compressor";
+            if( $@ ) {
+                croak("could not load compression class $compressor: $@");
+            }
+        }
+        # make sure it is a subclass
+        unless( UNIVERSAL::isa($compressor, __PACKAGE__) ) {
+            croak("$compressor is not a subclass of " . __PACKAGE__);
         }
         # make sure it can compress
         unless( UNIVERSAL::can($compressor, 'compress') ) {
@@ -277,6 +292,13 @@ schemes may be supported in the future.
 When compression takes places, the original file is deleted; you can disable
 this behaviour by setting the B<delete_after_compress> attribute.
 
+=head1 FILE NAMES
+
+After the file is opened using IO::File, a test is made to see if the file
+exists.  If this test fails, an exception is thrown.  This is a crude but
+hopefully effective way to prevent using esoteric filenames (C<< +> >> or
+C<< >&2 >>) or piped opens (C<< |/bin/date >>).
+
 =head1 FILE MODES
 
 At present, IO::File::CompressOnClose is not terribly clever about file
@@ -316,17 +338,8 @@ The class to be used for compression, or a coderef that will perform the
 same task.  This attribute will be set when the file is first opened, and
 may be modified thereafter.
 
-If a class is specified, it is required that the class has a C<<
-->compress() >> subroutine. When the file is closed, the object will be
-re-blessed into the named class, after which the B<compress> method will be
-invoked with two parameters: the source file name and the destination file
-name. If the destination file name is undefined, the method should choose a
-suitable default.
-
-If a coderef is specified, it should expect to be called with two
-parameters: the source file name and the destination file name. If the
-destination file name is undefined, the subroutine should choose a suitable
-default.
+For details on the calling syntax of the class or coderef, see
+L<"SUBCLASSING"> and L<"USING AN ANONYMOUS SUBROUTINE TO COMPRESS"> below.
 
 =head2 compress_on_close()
 
@@ -353,18 +366,30 @@ compressed or not.
 To support a new compression scheme, follow the layout of one of the
 existing subclasses (Zip or Gzip).
 
-Your class must provide a single method named B<compress>. When the file is
-closed, the object will be re-blessed into the named class, after which the
-B<compress> method will be invoked with two parameters: the source file name
-and the destination file name. If the destination file name is undefined,
-the method should choose a suitable default.
+Your class must meet these requirements:
+
+=over 4
+
+=item * it must be loadable (duh)
+
+=item * it must be a subclass of IO::File::CompressOnClose.
+
+=item * it must have a B<compress> method.
+
+=back
+
+When the class is successfully loaded, the IO::File::CompressOnClose object
+will be re-blessed into the new class.  The B<compress> method will then be
+invoked on the object with two parameters: the source file name and the
+destination file name. If the destination file name is undefined, the method
+should choose a suitable default.
 
 =head1 USING AN ANONYMOUS SUBROUTINE TO COMPRESS
 
 As an alternative to using a dedicated class for compression, an anonymous
 subroutine (aka CODEREF) may be used. In this case the calling syntax
-differs slightly: the source and destination file names are the only
-parameters. All other aspects described in L<"SUBCLASSING"> above apply.
+differs slightly: only the source and destination file names will be passed.
+The destination file naming rules apply as described for subclassing.
 
 =head1 TODO
 
