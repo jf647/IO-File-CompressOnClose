@@ -1,5 +1,5 @@
 #
-# $Id: CompressOnClose.pm,v 1.2 2003/12/28 00:15:15 james Exp $
+# $Id$
 #
 
 =head1 NAME
