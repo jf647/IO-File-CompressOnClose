@@ -1,3 +1,10 @@
+2003-12-27 18:16  james
+
+	* ChangeLog (1.1, v0_10), ChangeLog.xml (1.1, v0_10), META.yml
+	(1.2):
+
+	Re-gen META.yml
+
 2003-12-27 18:15  james
 
 	* Build.PL (1.1), MANIFEST (1.1), META.yml (1.1), Makefile.PL
