@@ -1,0 +1,28 @@
+2003-12-27 18:16  james
+
+	* ChangeLog (1.1, v0_10), ChangeLog.xml (1.1, v0_10), META.yml
+	(1.2):
+
+	Re-gen META.yml
+
+2003-12-27 18:15  james
+
+	* Build.PL (1.1), MANIFEST (1.1), META.yml (1.1), Makefile.PL
+	(1.1), README (1.1), lib/IO/File/CompressOnClose.pm (1.2),
+	lib/IO/File/CompressOnClose/Gzip.pm (1.2),
+	lib/IO/File/CompressOnClose/Zip.pm (1.1), t/01_use.t (1.2),
+	t/02_basic.t (1.2), t/03_pod.t (1.2), t/04_accessors.t (1.1),
+	t/05_modes.t (1.1), t/06_gzip.t (1.1), t/07_zip.t (1.1),
+	t/08_coderef.t (1.1), t/09_delete_after_compress.t (1.1) (utags:
+	v0_10):
+
+	Release v0.10 to CPAN
+
+2003-12-22 05:59  james
+
+	* lib/IO/File/CompressOnClose.pm (1.1),
+	lib/IO/File/CompressOnClose/Gzip.pm (1.1), t/01_use.t (1.1),
+	t/02_basic.t (1.1), t/03_pod.t (1.1):
+
+	Initial non-working stab at IO::File::CompressOnClose
+
